@@ -27,7 +27,6 @@
     "dist"
   ],
   "scripts": {
-    "preinstall": "npm-supervisor",
     "prepublishOnly": "npm run build",
     "build": "npm run clean && rollup -c",
     "clean": "del-cli dist/* bin/*",
