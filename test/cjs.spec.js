@@ -3,7 +3,7 @@
 const test = require('ava')
 const path = require('path')
 const fs = require('fs')
-const { Supervisor } = require('../dist/supervisor')
+const Supervisor = require('../dist/supervisor')
 
 test('Compiled code is available', async t => {
   const distPath = path.resolve(__dirname, '../dist')

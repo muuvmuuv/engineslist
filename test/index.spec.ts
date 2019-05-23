@@ -1,7 +1,7 @@
 // tslint:disable:no-string-literal
 
 import test from 'ava'
-import { Supervisor } from '../src'
+import Supervisor from '../src'
 
 test('Not a executable program', async t => {
   const supervisor = new Supervisor({

@@ -1,12 +1,12 @@
 {
   "name": "npm-supervisor",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "description": "Checks package.json engines to match with global or local binaries.",
   "keywords": [
-    "package",
     "check",
     "engines",
-    "npm"
+    "npm",
+    "package"
   ],
   "homepage": "https://github.com/muuvmuuv/npm-supervisor",
   "repository": {
@@ -19,30 +19,30 @@
     "email": "marvin.heilemann+github@googlemail.com",
     "url": "https://marvin.digital/"
   },
-  "bin": "bin/cli.js",
-  "main": "dist/supervisor.js",
-  "module": "dist/supervisor.esm.js",
-  "types": "index.d.ts",
   "files": [
     "dist"
   ],
+  "main": "dist/supervisor.js",
+  "module": "dist/supervisor.esm.js",
+  "types": "index.d.ts",
+  "bin": "bin/cli.js",
   "scripts": {
-    "prepublishOnly": "npm run build",
     "build": "npm run clean && rollup -c",
     "clean": "del-cli dist/* bin/*",
-    "run": "node bin/cli",
+    "cli": "node bin/cli",
     "lint": "tslint --project .",
-    "test": "ava",
+    "prepublishOnly": "npm run build",
+    "pretty": "pretty-quick",
     "release": "np",
-    "pretty": "pretty-quick"
+    "start": "npm run watch",
+    "test": "ava",
+    "test-cli": "npm-supervisor",
+    "watch": "npm run clean && rollup -cw"
   },
   "husky": {
     "hooks": {
       "pre-commit": "pretty-quick --staged"
     }
-  },
-  "engines": {
-    "node": ">=10.3.0"
   },
   "dependencies": {
     "boxen": "^3.2.0",
@@ -53,7 +53,6 @@
     "read-pkg": "^5.1.1",
     "semver": "^6.0.0"
   },
-  "peerDependencies": {},
   "devDependencies": {
     "@types/execa": "^0.9.0",
     "@types/listr": "^0.14.0",
@@ -78,6 +77,12 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.0.1",
     "typescript": "^3.4.5"
+  },
+  "peerDependencies": {},
+  "engines": {
+    "git": ">=2.20.1",
+    "node": ">=10.15.3",
+    "npm": ">=6.5.0"
   },
   "ava": {
     "concurrency": 4,

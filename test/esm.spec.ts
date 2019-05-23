@@ -3,7 +3,7 @@
 import test from 'ava'
 import path from 'path'
 import fs from 'fs'
-import { Supervisor } from '../dist/supervisor.esm'
+import Supervisor from '../dist/supervisor.esm'
 
 test('Compiled code is available', async t => {
   const distPath = path.resolve(__dirname, '../dist')

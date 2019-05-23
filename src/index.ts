@@ -4,7 +4,7 @@ import chalk from 'chalk'
 import execa from 'execa'
 import readPkg from 'read-pkg'
 import semver from 'semver'
-import { escapeRegExp } from './utils'
+import { escapeRegExp, sleep } from './utils'
 
 interface IEngines {
   [key: string]: string
@@ -40,6 +40,7 @@ class Supervisor {
   private options: IOptions
   private tasks: any
   private results: IResults = {}
+  private pillow = 50
 
   constructor(options?: IOptions) {
     const defaultOptions: IOptions = {
@@ -165,15 +166,17 @@ class Supervisor {
     this.options.engines = pkg.engines
   }
 
-  private checkAvailability(
+  private async checkAvailability(
     _: IContext,
     task: ListrTaskWrapper,
     engine: string
   ): Promise<any> {
     try {
-      const { stdout } = execa.sync('command', ['-v', engine], {
+      const { stdout } = await execa('command', ['-v', engine], {
         preferLocal: false,
       })
+
+      await sleep(this.pillow) // don't be so shiny
 
       if (this.options.debug) {
         console.log('Command:', stdout)
@@ -210,15 +213,17 @@ class Supervisor {
     }
   }
 
-  private getVersion(
+  private async getVersion(
     ctx: IContext,
     task: ListrTaskWrapper,
     engine: string
   ): Promise<any> {
     try {
-      const { stdout } = execa.sync(engine, ['--version'], {
+      const { stdout } = await execa(engine, ['--version'], {
         preferLocal: false,
       })
+
+      await sleep(this.pillow) // don't be so shiny
 
       const normalized = semver.coerce(stdout)
 
@@ -268,13 +273,15 @@ class Supervisor {
     }
   }
 
-  private validateVersion(
+  private async validateVersion(
     _: IContext,
     task: ListrTaskWrapper,
     engine: string,
     range: string
   ): Promise<any> {
-    const valid = semver.validRange(range)
+    const valid = await semver.validRange(range)
+
+    await sleep(this.pillow) // don't be so shiny
 
     if (this.options.debug) {
       console.log('Range:', range)
@@ -304,13 +311,15 @@ class Supervisor {
     return Promise.reject(new Error(`This is not a valid version (${range})!`))
   }
 
-  private checkVersion(
+  private async checkVersion(
     { version }: IContext,
     task: ListrTaskWrapper,
     engine: string,
     range: string
   ): Promise<any> {
-    const satisfies = semver.satisfies(version, range)
+    const satisfies = await semver.satisfies(version, range)
+
+    await sleep(this.pillow) // don't be so shiny
 
     if (this.options.debug) {
       console.log('Version:', version)
@@ -352,4 +361,4 @@ class Supervisor {
   }
 }
 
-export { Supervisor }
+export default Supervisor

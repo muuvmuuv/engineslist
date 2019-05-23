@@ -2,7 +2,7 @@ import meow from 'meow'
 import chalk from 'chalk'
 import boxen from 'boxen'
 import util from 'util'
-import { Supervisor } from '.'
+import Supervisor from '.'
 
 // BUG: https://github.com/microsoft/TypeScript/issues/24744
 const { version } = require('../package.json') // tslint:disable-line:no-var-requires
