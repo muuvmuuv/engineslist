@@ -92,7 +92,7 @@ class Supervisor {
         '.bin'
       )
       const binRegex = new RegExp(`:?${escapeRegExp(pathToBin)}:?`, 'i')
-      const newPath = oldPath.replace(binRegex, '')
+      const newPath = oldPath.replace(binRegex, ':')
       process.env.PATH = newPath // override $PATH
     }
   }

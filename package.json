@@ -1,6 +1,6 @@
 {
   "name": "npm-supervisor",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "Checks package.json engines to match with global or local binaries.",
   "keywords": [
     "package",
