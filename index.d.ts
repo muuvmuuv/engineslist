@@ -1,31 +1,32 @@
 import { ListrTaskWrapper } from 'listr'
 
-export interface IEngines {
+interface Engines {
   [key: string]: string
 }
 
-export interface IOptions {
+interface Options {
   debug?: boolean
   cwd?: string
-  engines?: IEngines
+  engines?: Engines
   ignoreLocal?: boolean
   silent?: boolean
 }
 
-export interface IResult {
+interface Result {
   task: ListrTaskWrapper
   success: boolean
   message: string
   data: any
 }
 
-export interface IResults {
+interface Results {
   [key: string]: {
     success: boolean
-    tasks: IResult[]
+    tasks: Result[]
   }
 }
 
-export interface IContext {
-  version: string
+declare class Supervisor {
+  constructor(options?: Options)
+  run(): Promise<Results>
 }

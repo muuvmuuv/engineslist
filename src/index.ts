@@ -1,12 +1,40 @@
 import Listr, { ListrTaskWrapper } from 'listr'
-import chalk from 'chalk'
 import path from 'path'
+import chalk from 'chalk'
 import execa from 'execa'
-import util from 'util'
 import readPkg from 'read-pkg'
 import semver from 'semver'
-import { IOptions, IContext, IResults } from './types'
 import { escapeRegExp } from './utils'
+
+interface IEngines {
+  [key: string]: string
+}
+
+interface IOptions {
+  debug?: boolean
+  cwd?: string
+  engines?: IEngines
+  ignoreLocal?: boolean
+  silent?: boolean
+}
+
+interface IResult {
+  task: ListrTaskWrapper
+  success: boolean
+  message: string
+  data: any
+}
+
+interface IResults {
+  [key: string]: {
+    success: boolean
+    tasks: IResult[]
+  }
+}
+
+interface IContext {
+  version: string
+}
 
 class Supervisor {
   private options: IOptions
@@ -51,23 +79,6 @@ class Supervisor {
     // modified `Listr` to prevent throwing errors when we test things
     // see: node_modules/listr/index.js:104
     await this.tasks.run()
-
-    if (this.options.debug) {
-      console.log()
-      console.log('-'.repeat(10), chalk.green('RESULTS'), '-'.repeat(10))
-      console.log()
-      Object.keys(this.results).forEach(r => {
-        console.log(chalk.bold(r.toUpperCase()))
-        console.log(
-          util.inspect(this.results[r], {
-            showHidden: false,
-            depth: 3,
-            colors: true,
-          })
-        )
-        console.log()
-      })
-    }
 
     return this.results
   }
@@ -341,4 +352,4 @@ class Supervisor {
   }
 }
 
-export default Supervisor
+export { Supervisor }

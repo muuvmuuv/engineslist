@@ -3,10 +3,12 @@
 The NPM Supervisor checks your `package.json` engines version ranges against you
 global and/or local installed binaries.
 
+![preview](assets/preview.png)
+
 **Why?**
 
-Because NPM does this only when someone else installs you programm but sometimes
-you don't want your friends to get errors while having the wrong NPM version.
+Because NPM does this only when someone else installs you program but sometimes
+you don't want your friends to get errors with having the wrong node version.
 
 ## How to use
 
@@ -36,7 +38,7 @@ const supervisor = new Supervisor({
 ### Command Line
 
 ```shell
-$ supervisor
+$ npm-supervisor
 ```
 
 #### Options

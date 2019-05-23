@@ -1,66 +1,82 @@
-import babel from 'rollup-plugin-babel'
-import typescript from 'rollup-plugin-typescript'
-import scss from 'rollup-plugin-scss'
+import typescript from 'rollup-plugin-typescript2'
+import json from 'rollup-plugin-json'
 import { terser } from 'rollup-plugin-terser'
-import changeCase from 'change-case'
 import createBanner from 'create-banner'
 import moment from 'moment'
-import { writeFileSync } from 'fs'
 import pkg from './package.json'
 
-const name = changeCase.pascalCase(pkg.name)
+const name = 'NPM Supervisor'
 const banner = createBanner({
   data: {
-    name: name,
+    name,
     date: moment().format('DD.MM.YYYY'),
   },
 })
 
-export default {
-  input: 'src/index.ts',
-  output: [
-    {
-      banner,
-      name,
-      file: `dist/${pkg.name}.js`,
-      format: 'umd',
-    },
-    {
-      banner,
-      file: `dist/${pkg.name}.common.js`,
-      format: 'cjs',
-    },
-    {
-      banner,
-      file: `dist/${pkg.name}.esm.js`,
-      format: 'esm',
-    },
-    {
-      banner,
-      name,
-      file: `docs/${pkg.name}.js`,
-      format: 'umd',
-    },
-  ],
-  plugins: [
-    scss({
-      failOnError: true,
-      outputStyle: 'compressed',
-      output: styles => {
-        writeFileSync(`dist/${pkg.name}.css`, styles)
-        writeFileSync(`docs/${pkg.name}.css`, styles)
+const plugins = [
+  typescript({
+    useTsconfigDeclarationDir: true,
+    tsconfig: 'tsconfig.json',
+    tsconfigOverride: {
+      compilerOptions: {
+        declarationDir: 'dist',
+        target: 'es5',
+        module: 'es6',
       },
-    }),
-    typescript(),
-    babel(),
-    terser({
-      output: {
-        comments: (_, { type, value }) => {
-          if (type == 'comment2') {
-            return new RegExp('VanillaCarousel').test(value)
-          }
-        },
+    },
+  }),
+  json({
+    compact: true,
+  }),
+  terser({
+    toplevel: true,
+    output: {
+      comments: (_, { type, value }) => {
+        if (type == 'comment2') {
+          return new RegExp('NPM Supervisor').test(value)
+        }
       },
-    }),
-  ],
-}
+    },
+  }),
+]
+
+export default [
+  {
+    input: 'src/cli.ts',
+    external: [
+      ...Object.keys(pkg.dependencies || {}),
+      ...Object.keys(pkg.peerDependencies || {}),
+      'path',
+      'util',
+    ],
+    output: [
+      {
+        banner: '#!/usr/bin/env node', // add shebang
+        file: `bin/cli.js`,
+        format: 'cjs',
+      },
+    ],
+    plugins,
+  },
+  {
+    input: 'src/index.ts',
+    external: [
+      ...Object.keys(pkg.dependencies || {}),
+      ...Object.keys(pkg.peerDependencies || {}),
+      'path',
+    ],
+    output: [
+      {
+        banner,
+        file: `dist/supervisor.js`,
+        format: 'cjs',
+      },
+      {
+        banner,
+        file: `dist/supervisor.esm.js`,
+        format: 'esm',
+      },
+    ],
+    plugins,
+  },
+]

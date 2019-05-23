@@ -1,6 +1,9 @@
 {
   "rulesDirectory": ["tslint-plugin-prettier"],
   "extends": ["tslint:latest", "tslint-config-prettier"],
+  "jsRules": {
+    "prettier": true
+  },
   "rules": {
     "prettier": true,
     "ordered-imports": false,

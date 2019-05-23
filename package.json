@@ -1,6 +1,6 @@
 {
   "name": "npm-supervisor",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Checks package.json engines to match with global or local binaries.",
   "keywords": [
     "package",
@@ -19,18 +19,22 @@
     "email": "marvin.heilemann+github@googlemail.com",
     "url": "https://marvin.digital/"
   },
-  "bin": {
-    "supervisor": "bin/cli.js"
-  },
-  "types": "bin",
+  "bin": "bin/cli.js",
+  "main": "dist/supervisor.js",
+  "module": "dist/supervisor.esm.js",
+  "types": "index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "preinstall": "npm-supervisor",
+    "prepublishOnly": "npm run build",
+    "build": "npm run clean && rollup -c",
+    "clean": "del-cli dist/* bin/*",
     "run": "node bin/cli",
     "lint": "tslint --project .",
     "test": "ava",
     "release": "np",
-    "build": "del-cli dist && tsc",
-    "minify": "minify dist/*.js --out-dir dist/",
-    "prepublishOnly": "npm run build",
     "pretty": "pretty-quick"
   },
   "husky": {
@@ -42,13 +46,15 @@
     "node": ">=10.3.0"
   },
   "dependencies": {
+    "boxen": "^3.2.0",
     "chalk": "^2.4.2",
     "execa": "^1.0.0",
-    "listr": "^0.14.3",
+    "listr": "0.14.3",
     "meow": "^5.0.0",
     "read-pkg": "^5.1.1",
     "semver": "^6.0.0"
   },
+  "peerDependencies": {},
   "devDependencies": {
     "@types/execa": "^0.9.0",
     "@types/listr": "^0.14.0",
@@ -57,11 +63,17 @@
     "@types/read-pkg": "^4.0.0",
     "@types/semver": "^6.0.0",
     "ava": "^1.4.1",
-    "babel-minify": "^0.5.0",
+    "create-banner": "^1.0.0",
     "del-cli": "^1.1.0",
+    "moment": "^2.24.0",
     "np": "^5.0.2",
     "nyc": "^14.1.1",
     "prettier": "^1.17.1",
+    "rollup": "^1.12.3",
+    "rollup-plugin-babel": "^4.3.2",
+    "rollup-plugin-json": "^4.0.0",
+    "rollup-plugin-terser": "^5.0.0",
+    "rollup-plugin-typescript2": "^0.21.1",
     "ts-node": "^8.1.0",
     "tslint": "^5.16.0",
     "tslint-config-prettier": "^1.18.0",
@@ -74,7 +86,8 @@
     "babel": false,
     "compileEnhancements": false,
     "extensions": [
-      "ts"
+      "ts",
+      "js"
     ],
     "require": [
       "ts-node/register"
@@ -82,7 +95,8 @@
   },
   "nyc": {
     "extension": [
-      ".ts"
+      ".ts",
+      ".js"
     ]
   }
 }
