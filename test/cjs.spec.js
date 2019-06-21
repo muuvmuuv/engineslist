@@ -3,23 +3,23 @@
 const test = require('ava')
 const path = require('path')
 const fs = require('fs')
-const EngineChecker = require('../dist/engine-checker')
+const { Engineslist } = require('../dist/engineslist')
 
-test('Compiled code is available', async t => {
+test('(CJS) Compiled code is available', async t => {
   const distPath = path.resolve(__dirname, '../dist')
   const exists = await fs.existsSync(distPath)
 
   t.true(exists)
 })
 
-test('Should run with CommonJS import', async t => {
-  const checker = new EngineChecker({
+test('(CJS) Should run with CommonJS import', async t => {
+  const engineslist = new Engineslist({
     engines: {
       node: '>=10.3.0',
     },
   })
 
-  const tasks = await checker.run()
+  const tasks = await engineslist.run()
 
   t.true(tasks['node'].success)
 })

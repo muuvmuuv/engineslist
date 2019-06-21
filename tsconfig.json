@@ -5,7 +5,7 @@
     "rootDir": ".",
     "outDir": "dist",
     "esModuleInterop": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "newLine": "lf",
     "strict": true,
     "noImplicitReturns": true,

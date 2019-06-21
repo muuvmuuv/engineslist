@@ -1,32 +1,34 @@
 import { ListrTaskWrapper } from 'listr'
 
-interface Engines {
-  [key: string]: string
+interface IEngine {
+  [name: string]: string
 }
 
-interface Options {
+export interface IInputOptions {
   debug?: boolean
   cwd?: string
-  engines?: Engines
   ignoreLocal?: boolean
   silent?: boolean
+  engines: IEngine
 }
 
-interface Result {
+interface IResult {
   task: ListrTaskWrapper
   success: boolean
   message: string
   data: any
 }
 
-interface Results {
+interface IResults {
   [key: string]: {
     success: boolean
-    tasks: Result[]
+    tasks: IResult[]
   }
 }
 
-declare class EngineChecker {
-  constructor(options?: Options)
-  run(): Promise<Results>
+export declare class Engineslist {
+  constructor(options?: IInputOptions)
+  run(): Promise<IResults>
 }
+
+export {}

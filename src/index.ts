@@ -12,12 +12,20 @@ interface IEngine {
   [type: string]: string
 }
 
-interface IOptions {
+export interface IInputOptions {
+  debug?: boolean
+  cwd?: string
+  ignoreLocal?: boolean
+  silent?: boolean
+  engines?: IEngine
+}
+
+export interface IOptions {
   debug: boolean
   cwd: string
-  engines?: IEngine
   ignoreLocal: boolean
   silent: boolean
+  engines: IEngine
 }
 
 interface IResult {
@@ -38,21 +46,19 @@ interface IContext {
   version: string
 }
 
-class EngineChecker {
-  private options: IOptions
+export class Engineslist {
+  private options: IOptions = {
+    debug: false,
+    cwd: process.cwd(),
+    ignoreLocal: true,
+    silent: true,
+    engines: {},
+  }
   private tasks: any
   private results: IResults = {}
   private pillow = 50
 
-  constructor(options?: IOptions) {
-    const defaultOptions: IOptions = {
-      debug: false,
-      cwd: process.cwd(),
-      ignoreLocal: true,
-      silent: true,
-      engines: {},
-    }
-    this.options = { ...defaultOptions, ...options }
+  constructor(options?: IInputOptions) {
     const explorer = cosmiconfig('engines', {
       searchPlaces: ['engines', 'engines.yaml', 'package.json'],
       loaders: {
@@ -68,6 +74,7 @@ class EngineChecker {
       }
       this.options.engines = configFromFile.config
     }
+    this.options = { ...this.options, ...options }
 
     this.tasks = new Listr({
       renderer: this.options.debug
@@ -91,8 +98,6 @@ class EngineChecker {
       throw new Error('No tasks found!')
     }
 
-    // modified `Listr` to prevent throwing errors when we test things
-    // see: node_modules/listr/index.js:104
     await this.tasks.run()
 
     return this.results
@@ -360,5 +365,3 @@ class EngineChecker {
     )
   }
 }
-
-export { EngineChecker }

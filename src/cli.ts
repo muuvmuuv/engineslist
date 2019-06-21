@@ -2,14 +2,14 @@ import meow from 'meow'
 import chalk from 'chalk'
 import boxen from 'boxen'
 import util from 'util'
-import { EngineChecker } from '.'
+import { Engineslist } from '.'
 
 import { version } from '../package.json'
 
 const cli = meow(
   `
     Usage
-    $ engine-checker <directory>
+    $ engineslist <directory>
 
     Options
     --ignoreLocal, -i  Ignore local installed node modules (true)
@@ -37,7 +37,7 @@ const { debug, ignoreLocal } = cli.flags
 const cwd = cli.input[0] || process.cwd()
 
 console.log(
-  boxen(`${chalk.green('Engine Checker')} (${chalk.dim(version)})`, {
+  boxen(`${chalk.green('Engineslist')} (${chalk.dim(version)})`, {
     padding: {
       top: 1,
       bottom: 1,
@@ -56,14 +56,14 @@ console.log(
   }) + '\n'
 )
 
-const checker = new EngineChecker({
+const engineslist = new Engineslist({
   silent: false,
   ignoreLocal,
   cwd,
   debug,
 })
 
-checker.run().then(res => {
+engineslist.run().then(res => {
   const success = Object.values(res).every(v => v.success === true)
   if (!success) {
     console.log(

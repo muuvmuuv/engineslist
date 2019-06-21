@@ -3,23 +3,23 @@
 import test from 'ava'
 import path from 'path'
 import fs from 'fs'
-import EngineChecker from '../dist/engine-checker.esm'
+import { Engineslist } from '../dist/engineslist.esm'
 
-test('Compiled code is available', async t => {
+test('(ESM) Compiled code is available', async t => {
   const distPath = path.resolve(__dirname, '../dist')
   const exists = await fs.existsSync(distPath)
 
   t.true(exists)
 })
 
-test('Should run with ESM import', async t => {
-  const checker = new EngineChecker({
+test('(ESM) Should run with ESM import', async t => {
+  const engineslist = new Engineslist({
     engines: {
       node: '>=10.3.0',
     },
   })
 
-  const tasks = await checker.run()
+  const tasks = await engineslist.run()
 
   t.true(tasks['node'].success)
 })

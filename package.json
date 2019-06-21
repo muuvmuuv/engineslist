@@ -1,17 +1,18 @@
 {
-  "name": "engine-checker",
-  "version": "2.0.1",
-  "description": "Checks package.json engines to match with global or local binaries.",
+  "name": "engineslist",
+  "version": "0.1.0",
+  "description": "Check engines you have defined in a file or `package.json` section that satisfies your global or locally program.",
   "keywords": [
     "check",
     "engines",
     "npm",
-    "package"
+    "package",
+    "program"
   ],
-  "homepage": "https://github.com/muuvmuuv/engine-checker",
+  "homepage": "https://github.com/muuvmuuv/engineslist",
   "repository": {
     "type": "git",
-    "url": "https://github.com/muuvmuuv/engine-checker.git"
+    "url": "https://github.com/muuvmuuv/engineslist.git"
   },
   "license": "MIT",
   "author": {
@@ -23,14 +24,14 @@
     "dist",
     "index.d.ts"
   ],
-  "main": "dist/engine-checker.js",
-  "module": "dist/engine-checker.esm.js",
-  "types": "index.d.ts",
-  "bin": "bin/cli.js",
+  "main": "dist/engineslist.js",
+  "module": "dist/engineslist.esm.js",
+  "bin": "dist/cli.js",
+  "typings": "index.d.ts",
   "scripts": {
     "build": "npm run clean && rollup -c",
-    "clean": "del-cli dist/* bin/*",
-    "cli": "node bin/cli",
+    "clean": "del-cli dist/*",
+    "cli": "node dist/cli",
     "dev": "cross-env NODE_ENV=development npm run build",
     "lint": "tslint --project .",
     "prepublishOnly": "npm run prod",
@@ -39,7 +40,7 @@
     "release": "np",
     "start": "npm run watch",
     "test": "ava",
-    "test-cli": "engine-checker",
+    "test-cli": "engineslist",
     "watch": "npm run dev -- -- --watch"
   },
   "husky": {
@@ -50,6 +51,7 @@
   "dependencies": {
     "boxen": "^3.2.0",
     "chalk": "^2.4.2",
+    "cosmiconfig": "^5.2.1",
     "execa": "^1.0.0",
     "listr": "0.14.3",
     "meow": "^5.0.0",
@@ -63,7 +65,6 @@
     "@types/node": "^12.0.2",
     "@types/semver": "^6.0.0",
     "ava": "^1.4.1",
-    "cosmiconfig": "^5.2.1",
     "create-banner": "^1.0.0",
     "cross-env": "^5.2.0",
     "del-cli": "^1.1.0",

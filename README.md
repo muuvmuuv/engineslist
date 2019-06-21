@@ -1,24 +1,25 @@
-# Engine Checker 🎛
+# Engineslist 🐫
 
-Engine Checker will check engines you have defined in a file or `package.json`
-section that satisfies your global or locally installed program version.
+Engineslist will check engines you have defined in a file or `package.json`
+section that satisfies your global or locally (e.g. via NPM) installed program
+version.
 
-![preview](https://raw.githubusercontent.com/muuvmuuv/engine-checker/master/assets/preview.png)
+![preview](https://raw.githubusercontent.com/muuvmuuv/engineslist/master/assets/preview.png)
 
 **Why?**
 
 Because NPM does this only when someone else installs you program but sometimes
 you don't want your friends to get errors with having the wrong node version and
-it is somehow usefull for some people.
+it is somehow usefull for some people with different programming languages.
 
 ## How to use
 
 ### Programmatically
 
 ```ts
-import EngineChecker from 'engine-checker'
+import Engineslist from 'engineslist'
 
-const checker = new EngineChecker({
+const engineslist = new Engineslist({
   engines: {
     node: '>=10.3.0',
   },
@@ -40,7 +41,7 @@ const checker = new EngineChecker({
 
 ```shell
   Usage
-    $ engine-checker <directory>
+    $ engineslist <directory>
 
   Options
     --ignoreLocal, -i  Ignore local installed node modules (true)

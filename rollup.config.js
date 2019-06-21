@@ -6,7 +6,7 @@ import moment from 'moment'
 import chalk from 'chalk'
 import pkg from './package.json'
 
-const name = 'Engine Checker'
+const name = 'Engineslist'
 const banner = createBanner({
   data: {
     name,
@@ -48,7 +48,7 @@ if (isProd) {
       output: {
         comments: (_, { type, value }) => {
           if (type == 'comment2') {
-            return new RegExp('Engine Checker').test(value)
+            return new RegExp('Engineslist').test(value)
           }
         },
       },
@@ -68,7 +68,7 @@ export default [
     output: [
       {
         banner: '#!/usr/bin/env node', // add shebang
-        file: `bin/cli.js`,
+        file: `dist/cli.js`,
         format: 'cjs',
       },
     ],
@@ -84,12 +84,12 @@ export default [
     output: [
       {
         banner,
-        file: `dist/engine-checker.js`,
+        file: `dist/engineslist.js`,
         format: 'cjs',
       },
       {
         banner,
-        file: `dist/engine-checker.esm.js`,
+        file: `dist/engineslist.esm.js`,
         format: 'esm',
       },
     ],
