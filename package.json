@@ -1,6 +1,6 @@
 {
   "name": "engine-checker",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Checks package.json engines to match with global or local binaries.",
   "keywords": [
     "check",
