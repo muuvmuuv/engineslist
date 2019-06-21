@@ -1,23 +1,24 @@
-# NPM Supervisor 🎛
+# Engine Checker 🎛
 
-The NPM Supervisor checks your `package.json` engines version ranges against you
-global and/or local installed binaries.
+Engine Checker will check engines you have defined in a file or `package.json`
+section that satisfies your global or locally installed program version.
 
 ![preview](assets/preview.png)
 
 **Why?**
 
 Because NPM does this only when someone else installs you program but sometimes
-you don't want your friends to get errors with having the wrong node version.
+you don't want your friends to get errors with having the wrong node version and
+it is somehow usefull for some people.
 
 ## How to use
 
 ### Programmatically
 
 ```ts
-import Supervisor from 'npm-supervisor'
+import EngineChecker from 'engine-checker'
 
-const supervisor = new Supervisor({
+const checker = new EngineChecker({
   engines: {
     node: '>=10.3.0',
   },
@@ -38,14 +39,8 @@ const supervisor = new Supervisor({
 ### Command Line
 
 ```shell
-$ npm-supervisor
-```
-
-#### Options
-
-```shell
   Usage
-    $ npm-engineer <directory>
+    $ engine-checker <directory>
 
   Options
     --ignoreLocal, -i  Ignore local installed node modules (true)

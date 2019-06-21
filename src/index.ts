@@ -2,20 +2,22 @@ import Listr, { ListrTaskWrapper } from 'listr'
 import path from 'path'
 import chalk from 'chalk'
 import execa from 'execa'
-import readPkg from 'read-pkg'
 import semver from 'semver'
-import { escapeRegExp, sleep } from './utils'
+import cosmiconfig from 'cosmiconfig'
 
-interface IEngines {
-  [key: string]: string
+import { escapeRegExp, sleep } from './utils'
+import { PlainSyncLoader } from './plain-parser'
+
+interface IEngine {
+  [type: string]: string
 }
 
 interface IOptions {
-  debug?: boolean
-  cwd?: string
-  engines?: IEngines
-  ignoreLocal?: boolean
-  silent?: boolean
+  debug: boolean
+  cwd: string
+  engines?: IEngine
+  ignoreLocal: boolean
+  silent: boolean
 }
 
 interface IResult {
@@ -36,7 +38,7 @@ interface IContext {
   version: string
 }
 
-class Supervisor {
+class EngineChecker {
   private options: IOptions
   private tasks: any
   private results: IResults = {}
@@ -48,8 +50,24 @@ class Supervisor {
       cwd: process.cwd(),
       ignoreLocal: true,
       silent: true,
+      engines: {},
     }
     this.options = { ...defaultOptions, ...options }
+    const explorer = cosmiconfig('engines', {
+      searchPlaces: ['engines', 'engines.yaml', 'package.json'],
+      loaders: {
+        noExt: {
+          sync: PlainSyncLoader,
+        },
+      },
+    })
+    const configFromFile = explorer.searchSync()
+    if (configFromFile) {
+      if (this.options.debug) {
+        console.log('Config', chalk.dim(configFromFile.filepath), '\n')
+      }
+      this.options.engines = configFromFile.config
+    }
 
     this.tasks = new Listr({
       renderer: this.options.debug
@@ -63,10 +81,6 @@ class Supervisor {
 
     if (this.options.ignoreLocal) {
       this.ignoreLocal()
-    }
-
-    if (!this.options.engines) {
-      this.findEngines()
     }
 
     this.buildTasks()
@@ -87,11 +101,7 @@ class Supervisor {
   private ignoreLocal() {
     const oldPath = process.env.PATH
     if (oldPath) {
-      const pathToBin = path.resolve(
-        this.options.cwd as string,
-        'node_modules',
-        '.bin'
-      )
+      const pathToBin = path.resolve(this.options.cwd, 'node_modules', '.bin')
       const binRegex = new RegExp(`:?${escapeRegExp(pathToBin)}:?`, 'i')
       const newPath = oldPath.replace(binRegex, ':')
       process.env.PATH = newPath // override $PATH
@@ -154,16 +164,6 @@ class Supervisor {
         )
       },
     })
-  }
-
-  private findEngines() {
-    const pkg = readPkg.sync({
-      cwd: this.options.cwd,
-    })
-    if (!pkg) {
-      throw new Error('No package.json found!')
-    }
-    this.options.engines = pkg.engines
   }
 
   private async checkAvailability(
@@ -361,4 +361,4 @@ class Supervisor {
   }
 }
 
-export default Supervisor
+export { EngineChecker }

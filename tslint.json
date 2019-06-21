@@ -1,6 +1,12 @@
 {
-  "rulesDirectory": ["tslint-plugin-prettier"],
-  "extends": ["tslint:latest", "tslint-config-prettier"],
+  "defaultSeverity": "warning",
+  "rulesDirectory": [
+    "tslint-plugin-prettier"
+  ],
+  "extends": [
+    "tslint:latest",
+    "tslint-config-prettier"
+  ],
   "jsRules": {
     "prettier": true
   },

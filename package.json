@@ -1,6 +1,6 @@
 {
-  "name": "npm-supervisor",
-  "version": "0.2.4",
+  "name": "engine-checker",
+  "version": "2.0.0",
   "description": "Checks package.json engines to match with global or local binaries.",
   "keywords": [
     "check",
@@ -8,10 +8,10 @@
     "npm",
     "package"
   ],
-  "homepage": "https://github.com/muuvmuuv/npm-supervisor",
+  "homepage": "https://github.com/muuvmuuv/engine-checker",
   "repository": {
     "type": "git",
-    "url": "https://github.com/muuvmuuv/npm-supervisor.git"
+    "url": "https://github.com/muuvmuuv/engine-checker.git"
   },
   "license": "MIT",
   "author": {
@@ -20,24 +20,27 @@
     "url": "https://marvin.digital/"
   },
   "files": [
-    "dist"
+    "dist",
+    "index.d.ts"
   ],
-  "main": "dist/supervisor.js",
-  "module": "dist/supervisor.esm.js",
+  "main": "dist/engine-checker.js",
+  "module": "dist/engine-checker.esm.js",
   "types": "index.d.ts",
   "bin": "bin/cli.js",
   "scripts": {
     "build": "npm run clean && rollup -c",
     "clean": "del-cli dist/* bin/*",
     "cli": "node bin/cli",
+    "dev": "cross-env NODE_ENV=development npm run build",
     "lint": "tslint --project .",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "npm run prod",
     "pretty": "pretty-quick",
+    "prod": "cross-env NODE_ENV=production npm run build",
     "release": "np",
     "start": "npm run watch",
     "test": "ava",
-    "test-cli": "npm-supervisor",
-    "watch": "npm run clean && rollup -cw"
+    "test-cli": "engine-checker",
+    "watch": "npm run dev -- -- --watch"
   },
   "husky": {
     "hooks": {
@@ -50,18 +53,19 @@
     "execa": "^1.0.0",
     "listr": "0.14.3",
     "meow": "^5.0.0",
-    "read-pkg": "^5.1.1",
     "semver": "^6.0.0"
   },
   "devDependencies": {
+    "@types/cosmiconfig": "^5.0.3",
     "@types/execa": "^0.9.0",
     "@types/listr": "^0.14.0",
     "@types/meow": "^5.0.0",
     "@types/node": "^12.0.2",
-    "@types/read-pkg": "^4.0.0",
     "@types/semver": "^6.0.0",
     "ava": "^1.4.1",
+    "cosmiconfig": "^5.2.1",
     "create-banner": "^1.0.0",
+    "cross-env": "^5.2.0",
     "del-cli": "^1.1.0",
     "moment": "^2.24.0",
     "np": "^5.0.2",
@@ -77,12 +81,6 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.0.1",
     "typescript": "^3.4.5"
-  },
-  "peerDependencies": {},
-  "engines": {
-    "git": ">=2.20.1",
-    "node": ">=10.15.3",
-    "npm": ">=6.5.0"
   },
   "ava": {
     "concurrency": 4,

@@ -26,7 +26,7 @@ interface Results {
   }
 }
 
-declare class Supervisor {
+declare class EngineChecker {
   constructor(options?: Options)
   run(): Promise<Results>
 }

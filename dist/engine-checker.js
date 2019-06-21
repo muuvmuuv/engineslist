@@ -1,14 +1,22 @@
-#!/usr/bin/env node
+/*!
+ * Engine Checker v2.0.0
+ * https://github.com/muuvmuuv/engine-checker
+ *
+ * Copyright 2019 Marvin Heilemann
+ * Released under the MIT license
+ *
+ * Date: 21.06.2019
+ */
+
 'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var meow = _interopDefault(require('meow'));
-var chalk = _interopDefault(require('chalk'));
-var boxen = _interopDefault(require('boxen'));
-var util = _interopDefault(require('util'));
 var Listr = _interopDefault(require('listr'));
 var path = _interopDefault(require('path'));
+var chalk = _interopDefault(require('chalk'));
 var execa = _interopDefault(require('execa'));
 var semver = _interopDefault(require('semver'));
 var cosmiconfig = _interopDefault(require('cosmiconfig'));
@@ -428,64 +436,4 @@ var EngineChecker = /** @class */ (function () {
     return EngineChecker;
 }());
 
-const version="2.0.0";
-
-var cli = meow("\n    Usage\n    $ engine-checker <directory>\n\n    Options\n    --ignoreLocal, -i  Ignore local installed node modules (true)\n\n    --debug     Debug program\n    --version   Show version\n    --help      Show help\n", {
-    flags: {
-        debug: {
-            type: 'boolean',
-            default: false,
-        },
-        ignoreLocal: {
-            type: 'boolean',
-            alias: 'i',
-            default: true,
-        },
-    },
-});
-var _a = cli.flags, debug = _a.debug, ignoreLocal = _a.ignoreLocal;
-var cwd = cli.input[0] || process.cwd();
-console.log(boxen(chalk.green('Engine Checker') + " (" + chalk.dim(version) + ")", {
-    padding: {
-        top: 1,
-        bottom: 1,
-        right: 8,
-        left: 8,
-    },
-    margin: {
-        top: 0,
-        bottom: 0,
-        right: 3,
-        left: 3,
-    },
-    align: 'center',
-    borderColor: 'white',
-    dimBorder: true,
-}) + '\n');
-var checker = new EngineChecker({
-    silent: false,
-    ignoreLocal: ignoreLocal,
-    cwd: cwd,
-    debug: debug,
-});
-checker.run().then(function (res) {
-    var success = Object.values(res).every(function (v) { return v.success === true; });
-    if (!success) {
-        console.log("\n    " + chalk.red('Oh, no!') + "\n    Seems like some engines does not satisfies or not\n    exists. You may check them and install the correct\n    version before using this project.\n      ");
-    }
-    else {
-        console.log("\n    " + chalk.green('Yeah!') + "\n    You are ready to go. All engines are compatible\n    with you system environment.\n      ");
-    }
-    if (debug) {
-        console.log();
-        Object.keys(res).forEach(function (r) {
-            console.log(chalk.bold(r.toUpperCase()));
-            console.log(util.inspect(res[r], {
-                showHidden: false,
-                depth: 3,
-                colors: true,
-            }));
-            console.log();
-        });
-    }
-});
+exports.EngineChecker = EngineChecker;

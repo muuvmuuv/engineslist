@@ -3,7 +3,7 @@
 const test = require('ava')
 const path = require('path')
 const fs = require('fs')
-const Supervisor = require('../dist/supervisor')
+const EngineChecker = require('../dist/engine-checker')
 
 test('Compiled code is available', async t => {
   const distPath = path.resolve(__dirname, '../dist')
@@ -13,13 +13,13 @@ test('Compiled code is available', async t => {
 })
 
 test('Should run with CommonJS import', async t => {
-  const supervisor = new Supervisor({
+  const checker = new EngineChecker({
     engines: {
       node: '>=10.3.0',
     },
   })
 
-  const tasks = await supervisor.run()
+  const tasks = await checker.run()
 
   t.true(tasks['node'].success)
 })

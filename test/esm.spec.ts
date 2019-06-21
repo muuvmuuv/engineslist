@@ -3,7 +3,7 @@
 import test from 'ava'
 import path from 'path'
 import fs from 'fs'
-import Supervisor from '../dist/supervisor.esm'
+import EngineChecker from '../dist/engine-checker.esm'
 
 test('Compiled code is available', async t => {
   const distPath = path.resolve(__dirname, '../dist')
@@ -13,13 +13,13 @@ test('Compiled code is available', async t => {
 })
 
 test('Should run with ESM import', async t => {
-  const supervisor = new Supervisor({
+  const checker = new EngineChecker({
     engines: {
       node: '>=10.3.0',
     },
   })
 
-  const tasks = await supervisor.run()
+  const tasks = await checker.run()
 
   t.true(tasks['node'].success)
 })

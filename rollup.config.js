@@ -3,9 +3,10 @@ import json from 'rollup-plugin-json'
 import { terser } from 'rollup-plugin-terser'
 import createBanner from 'create-banner'
 import moment from 'moment'
+import chalk from 'chalk'
 import pkg from './package.json'
 
-const name = 'NPM Supervisor'
+const name = 'Engine Checker'
 const banner = createBanner({
   data: {
     name,
@@ -26,19 +27,34 @@ const plugins = [
     },
   }),
   json({
+    preferConst: true,
+    namedExports: true,
     compact: true,
   }),
-  terser({
-    toplevel: true,
-    output: {
-      comments: (_, { type, value }) => {
-        if (type == 'comment2') {
-          return new RegExp('NPM Supervisor').test(value)
-        }
-      },
-    },
-  }),
 ]
+
+const isProd = process.env.NODE_ENV === 'production'
+const isDev = process.env.NODE_ENV === 'developent'
+
+console.log(
+  'Environment:',
+  isDev ? chalk.green('development') : chalk.red('production')
+)
+
+if (isProd) {
+  plugins.push(
+    terser({
+      toplevel: true,
+      output: {
+        comments: (_, { type, value }) => {
+          if (type == 'comment2') {
+            return new RegExp('Engine Checker').test(value)
+          }
+        },
+      },
+    })
+  )
+}
 
 export default [
   {
@@ -68,12 +84,12 @@ export default [
     output: [
       {
         banner,
-        file: `dist/supervisor.js`,
+        file: `dist/engine-checker.js`,
         format: 'cjs',
       },
       {
         banner,
-        file: `dist/supervisor.esm.js`,
+        file: `dist/engine-checker.esm.js`,
         format: 'esm',
       },
     ],
