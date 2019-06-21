@@ -3,7 +3,7 @@
 Engine Checker will check engines you have defined in a file or `package.json`
 section that satisfies your global or locally installed program version.
 
-![preview](assets/preview.png)
+![preview](https://raw.githubusercontent.com/muuvmuuv/engine-checker/master/assets/preview.png)
 
 **Why?**
 
