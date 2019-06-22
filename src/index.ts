@@ -76,6 +76,10 @@ export class Engineslist {
     }
     this.options = { ...this.options, ...options }
 
+    if (this.options.debug) {
+      console.log(this.options)
+    }
+
     this.tasks = new Listr({
       renderer: this.options.debug
         ? 'verbose'
