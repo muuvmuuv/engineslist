@@ -1,83 +1,80 @@
 import Listr, { ListrTaskWrapper } from 'listr'
 import path from 'path'
 import chalk from 'chalk'
-import execa from 'execa'
 import semver from 'semver'
+import is from '@sindresorhus/is'
+import pathKey from 'path-key'
+import npmRunPath from 'npm-run-path'
 import cosmiconfig from 'cosmiconfig'
 
-import { escapeRegExp, sleep } from './utils'
+import {
+  Options,
+  InputOptions,
+  Context,
+  ListrError,
+  Engine,
+  InputEngine,
+  Engines,
+} from './typings'
+import { indent, parseEngines } from './utils'
 import { PlainSyncLoader } from './plain-parser'
-
-interface IEngine {
-  [type: string]: string
-}
-
-export interface IInputOptions {
-  debug?: boolean
-  cwd?: string
-  ignoreLocal?: boolean
-  silent?: boolean
-  engines?: IEngine
-}
-
-export interface IOptions {
-  debug: boolean
-  cwd: string
-  ignoreLocal: boolean
-  silent: boolean
-  engines: IEngine
-}
-
-interface IResult {
-  task: ListrTaskWrapper
-  success: boolean
-  message: string
-  data: any
-}
-
-interface IResults {
-  [key: string]: {
-    success: boolean
-    tasks: IResult[]
-  }
-}
-
-interface IContext {
-  version: string
-}
+import { findProgram } from './finder/program'
+import { findVersion } from './finder/version'
+import {
+  findPackageManager,
+  findRelease,
+  getClosestVersion,
+} from './finder/manager'
 
 export class Engineslist {
-  private options: IOptions = {
+  public options: Options = {
     debug: false,
     cwd: process.cwd(),
     ignoreLocal: true,
+    strict: false,
     silent: true,
-    engines: {},
   }
-  private tasks: any
-  private results: IResults = {}
-  private pillow = 50
+  public engines: Engines = []
 
-  constructor(options?: IInputOptions) {
-    const explorer = cosmiconfig('engines', {
-      searchPlaces: ['engines', 'engines.yaml', 'package.json'],
-      loaders: {
-        noExt: {
-          sync: PlainSyncLoader,
-        },
-      },
-    })
-    const configFromFile = explorer.searchSync()
-    if (configFromFile) {
-      if (this.options.debug) {
-        console.log('Config', chalk.dim(configFromFile.filepath), '\n')
-      }
-      this.options.engines = configFromFile.config
-    }
+  private tasks: Listr
+
+  constructor(engines?: InputEngine, options?: InputOptions) {
     this.options = { ...this.options, ...options }
 
+    if (engines && Object.keys(engines).length !== 0) {
+      this.engines = parseEngines(engines)
+    } else {
+      const explorer = cosmiconfig('engines', {
+        cache: !this.options.debug,
+        searchPlaces: [
+          'engineslist',
+          'engines',
+          'engineslist.yaml',
+          'engines.yaml',
+          'package.json',
+        ],
+        loaders: {
+          noExt: {
+            sync: PlainSyncLoader,
+          },
+        },
+      })
+      const configFromFile = explorer.searchSync(this.options.cwd)
+      if (configFromFile) {
+        if (this.options.debug) {
+          console.log('Cosmiconfig:', configFromFile)
+        }
+        this.engines = parseEngines(configFromFile.config)
+      }
+    }
+
     if (this.options.debug) {
-      console.log(this.options)
+      console.log('Options:', this.options)
+      console.log('Engines:', this.engines)
+    }
+
+    if (this.engines.length === 0) {
+      throw new Error('No engines found!')
     }
 
     this.tasks = new Listr({
@@ -86,7 +83,7 @@ export class Engineslist {
         : this.options.silent
         ? 'silent'
         : 'default',
-      concurrent: false,
+      concurrent: true,
       exitOnError: false,
     })
 
@@ -97,275 +94,285 @@ export class Engineslist {
     this.buildTasks()
   }
 
-  public async run() {
+  public run(): Promise<Context['results']> {
     if (!this.tasks) {
       throw new Error('No tasks found!')
     }
 
-    await this.tasks.run()
+    return new Promise((resolve) => {
+      this.tasks
+        .run({
+          options: this.options,
+          results: [],
+        })
+        .then((ctx: Context) => {
+          if (this.options.debug) {
+            console.log('Options:', ctx.options)
+          }
 
-    return this.results
-  }
+          resolve(ctx.results)
+        })
+        .catch((err: ListrError) => {
+          this.displayErrors(err)
 
-  private ignoreLocal() {
-    const oldPath = process.env.PATH
-    if (oldPath) {
-      const pathToBin = path.resolve(this.options.cwd, 'node_modules', '.bin')
-      const binRegex = new RegExp(`:?${escapeRegExp(pathToBin)}:?`, 'i')
-      const newPath = oldPath.replace(binRegex, ':')
-      process.env.PATH = newPath // override $PATH
-    }
+          resolve(err.context.results)
+        })
+    })
   }
 
   private buildTasks() {
-    const engines = this.options.engines
+    const engines = this.engines
     if (!engines) {
       throw new Error('No engines found!')
     }
 
-    Object.keys(engines).forEach(engine => {
-      const version = engines[engine]
-      this.addTask(engine, version)
+    engines.forEach((engine, index) => {
+      // if the cmd is a executable file resolve it's file path
+      if (/\.\/[a-z/.]+/i.test(engine.cmd)) {
+        engine.executable = this.engines[index].executable = path.resolve(
+          this.options.cwd,
+          engine.cmd,
+        )
+      }
+      this.addTask(engine)
     })
   }
 
-  private addTask(engine: string, range: string) {
-    this.results[engine] = {
-      success: false,
-      tasks: [],
-    }
+  private addTask(engine: Engine) {
     this.tasks.add({
-      title: `Checking engine: ${chalk.green(engine)} (${chalk.dim(range)})`,
-      task: () => {
+      title: `Checking engine: ${chalk.green(engine.cmd)} (${chalk.dim(
+        engine.range,
+      )})`,
+      task: (masterCtx: Context) => {
+        masterCtx.results[engine.cmd] = {
+          engine: engine.cmd,
+          success: false,
+          version: null,
+          manager: undefined,
+          tasks: [],
+        }
+
         return new Listr(
           [
             {
-              title: 'Check availability',
-              task: (ctx: IContext, task: ListrTaskWrapper) =>
-                this.checkAvailability(ctx, task, engine),
+              title: 'Find program',
+              task: (ctx, task) => findProgram(ctx, task, engine),
             },
             {
               title: 'Get command version',
-              task: (ctx: IContext, task: ListrTaskWrapper) =>
-                this.getVersion(ctx, task, engine),
+              task: (ctx, task) => findVersion(ctx, task, engine),
             },
             {
-              title: 'Validate range',
-              task: (ctx: IContext, task: ListrTaskWrapper) =>
-                this.validateVersion(ctx, task, engine, range),
+              title: 'Validate version range',
+              task: (ctx, task) => this.validateVersion(ctx, task, engine),
+            },
+            {
+              title: 'Find package manager',
+              task: (ctx, task) => findPackageManager(ctx, task, engine),
+            },
+            {
+              title: 'Validate against releases',
+              skip: () => !this.options.strict,
+              task: (ctx, task) => findRelease(ctx, task, engine),
             },
             {
               title: 'Check version against range',
-              task: (ctx: IContext, task: ListrTaskWrapper) =>
-                this.checkVersion(ctx, task, engine, range),
+              task: (ctx, task) => this.checkVersion(ctx, task, engine),
             },
             {
               title: chalk.dim('Update results'),
-              task: () => {
-                this.results[engine].success = true
+              task: (ctx) => {
+                ctx.results[engine.cmd].success = true
                 return Promise.resolve()
               },
             },
           ],
           {
             exitOnError: true,
-          }
+          },
         )
       },
     })
   }
 
-  private async checkAvailability(
-    _: IContext,
-    task: ListrTaskWrapper,
-    engine: string
-  ): Promise<any> {
-    try {
-      const { stdout } = await execa('command', ['-v', engine], {
-        preferLocal: false,
-      })
+  private ignoreLocal() {
+    const key = pathKey()
+    const oldPath = process.env[key] || ''
+    let newPath = ''
 
-      await sleep(this.pillow) // don't be so shiny
+    const npmPathArray = npmRunPath({
+      cwd: path.resolve(__dirname, this.options.cwd),
+      path: '',
+    })
+      .split(':')
+      .filter((v) => !is.emptyString(v) && !v.includes('nvm'))
 
-      if (this.options.debug) {
-        console.log('Command:', stdout)
+    oldPath.split(':').forEach((p) => {
+      const isNotNpmLocal = npmPathArray.indexOf(p) === -1
+
+      if (isNotNpmLocal) {
+        newPath += p + ':'
       }
+    })
 
-      if (stdout.includes(engine)) {
-        this.results[engine].tasks.push({
-          task,
-          success: true,
-          message: `Executable found!`,
-          data: stdout,
-        })
-        return Promise.resolve(`Executable found!`)
-      }
+    newPath = newPath.slice(0, -1) // remove last `:`
 
-      this.results[engine].tasks.push({
-        task,
-        success: false,
-        message: `Executable not found!`,
-        data: stdout,
-      })
-      return Promise.reject(new Error(`Executable not found!`))
-    } catch (error) {
-      if (this.options.debug) {
-        console.log(error.message)
-      }
-      this.results[engine].tasks.push({
-        task,
-        success: false,
-        message: `Error executing program!`,
-        data: error,
-      })
-      return Promise.reject(new Error(`Error executing program!`))
+    if (this.options.debug) {
+      console.log()
+      console.log(chalk.bold('PATH'))
+      console.log('npm:\n', npmPathArray)
+      console.log('old:\n- ', oldPath.split(':').join('\n- '))
+      console.log('new:\n- ', newPath.split(':').join('\n- '))
+      console.log()
     }
+
+    process.env[key] = newPath // override $PATH
   }
 
-  private async getVersion(
-    ctx: IContext,
-    task: ListrTaskWrapper,
-    engine: string
-  ): Promise<any> {
-    try {
-      const { stdout } = await execa(engine, ['--version'], {
-        preferLocal: false,
-      })
+  private displayErrors(err: ListrError) {
+    if (this.options.debug) {
+      console.log(err)
+      console.log(err.context.results)
+    }
 
-      await sleep(this.pillow) // don't be so shiny
-
-      const normalized = semver.coerce(stdout)
-
-      if (this.options.debug) {
-        console.log('Version:', stdout)
-        console.log('Normalized:', normalized ? normalized.version : null)
+    Object.values(err.context.results).forEach(async (r) => {
+      if (r.success) {
+        return // this engine is ok
       }
+      let log = indent(chalk.bold.underline(r.engine), 1) + '\n'
 
-      if (normalized) {
-        const validVersion = semver.valid(normalized.version)
-        if (validVersion) {
-          ctx.version = validVersion
-          this.results[engine].tasks.push({
-            task,
-            success: true,
-            message: 'Got a valid version',
-            data: {
-              version: stdout,
-              normalized,
-              validVersion,
-            },
-          })
-          return Promise.resolve()
+      for await (const t of r.tasks) {
+        if (t.success) {
+          continue // this task is ok
+        }
+
+        if (this.options.debug) {
+          log += indent(chalk.dim(t.name), 1)
+        }
+        log += indent(chalk.red(t.message), 1)
+
+        if (r.manager) {
+          const closest = await getClosestVersion(
+            r.manager.name,
+            r.engine,
+            t.data.engine.range,
+          )
+          if (closest) {
+            log += indent(
+              'Try to install the minimum required version with:',
+              2,
+            )
+            // prettier-ignore
+            log += indent(`${chalk.yellow(`npm install ${r.engine}@${closest}`)}${chalk.dim(' --save-dev')}`, 1)
+          } else {
+            log += indent(
+              "We tried to find this version on npmjs.org but couldn't find any. Please try again with another version or a more specific range.",
+              2,
+            )
+            log += indent(
+              `You may want to have a look in the versions section on ${chalk.underline(
+                `https://www.npmjs.com/package/${r.engine}`,
+              )}.`,
+              1,
+            )
+          }
         }
       }
 
-      this.results[engine].tasks.push({
-        task,
-        success: false,
-        message: `No valid version found! Please fill in an issue on GitHub.`,
-        data: { stdout, normalized },
-      })
-      return Promise.reject(
-        new Error(`No valid version found! Please fill in an issue on GitHub.`)
-      )
-    } catch (error) {
-      if (this.options.debug) {
-        console.log(error.message)
+      if (!this.options.silent) {
+        console.log(log)
       }
-      this.results[engine].tasks.push({
-        task,
-        success: false,
-        message: `Error fetching version!`,
-        data: error,
-      })
-      return Promise.reject(new Error(`Error fetching version!`))
-    }
+    })
   }
 
   private async validateVersion(
-    _: IContext,
+    ctx: Context,
     task: ListrTaskWrapper,
-    engine: string,
-    range: string
+    engine: Engine,
   ): Promise<any> {
-    const valid = await semver.validRange(range)
-
-    await sleep(this.pillow) // don't be so shiny
+    const valid = await semver.validRange(engine.range)
 
     if (this.options.debug) {
-      console.log('Range:', range)
+      console.log('Engine:', chalk.green(engine.cmd))
+      console.log('Range:', engine.range)
       console.log('Valid:', valid)
     }
 
     if (valid) {
-      this.results[engine].tasks.push({
-        task,
+      ctx.results[engine.cmd].tasks.push({
+        name: 'validateVersion',
         success: true,
-        message: `This version is valid!`,
+        message: `Valid version range`,
         data: {
-          range,
+          engine,
         },
+        task,
       })
-      return Promise.resolve(`This version is valid!`)
+      return Promise.resolve(`Valid version range.`)
     }
 
-    this.results[engine].tasks.push({
-      task,
+    ctx.results[engine.cmd].tasks.push({
+      name: 'validateVersion',
       success: false,
-      message: `This is not a valid version (${range})!`,
+      message: `Invalid version range: ${engine.range}`,
       data: {
-        range,
+        engine,
       },
+      task,
     })
-    return Promise.reject(new Error(`This is not a valid version (${range})!`))
+    return Promise.reject(new Error(`Invalid version range: ${engine.range}`))
   }
 
   private async checkVersion(
-    { version }: IContext,
+    ctx: Context,
     task: ListrTaskWrapper,
-    engine: string,
-    range: string
+    engine: Engine,
   ): Promise<any> {
-    const satisfies = await semver.satisfies(version, range)
-
-    await sleep(this.pillow) // don't be so shiny
+    const version = ctx.results[engine.cmd].version
+    if (!version) {
+      return Promise.reject('No version found')
+    }
+    const satisfies = await semver.satisfies(version, engine.range)
 
     if (this.options.debug) {
+      console.log('Engine:', chalk.green(engine.cmd))
       console.log('Version:', version)
-      console.log('Range:', range)
+      console.log('Range:', engine.range)
       console.log('Satisfies:', satisfies)
     }
 
     if (satisfies) {
-      this.results[engine].tasks.push({
-        task,
+      ctx.results[engine.cmd].tasks.push({
+        name: 'checkVersion',
         success: true,
         message: `Yeah, your program version satisfies the required range!`,
         data: {
           version,
-          range,
+          engine,
           satisfies,
         },
+        task,
       })
       return Promise.resolve(
-        `Yeah, your program version satisfies the required range!`
+        `Yeah, your program version satisfies the required range!`,
       )
     }
 
-    this.results[engine].tasks.push({
-      task,
+    ctx.results[engine.cmd].tasks.push({
+      name: 'checkVersion',
       success: false,
-      message: `Ooh, the required range (${range}) does not satisfies your program version (${version})!`,
+      message: `Ooh, the required range (${engine.range}) does not satisfies your program version (${version})!`,
       data: {
         version,
-        range,
+        engine,
         satisfies,
       },
+      task,
     })
     return Promise.reject(
       new Error(
-        `Ooh, the required range (${range}) does not satisfies your program version (${version})!`
-      )
+        `Ooh, the required range (${engine.range}) does not satisfies your program version (${version})!`,
+      ),
     )
   }
 }

@@ -1,0 +1,14 @@
+import test from 'ava'
+// import { Engineslist } from '../dist/engineslist.esm'
+
+// test('(ESM) Should run with ESM import', async (t) => {
+//   const engineslist = new Engineslist({
+//     engines: {
+//       node: '>=10.3.0',
+//     },
+//   })
+
+//   const tasks = await engineslist.run()
+
+//   t.true(tasks['node'].success)
+// })

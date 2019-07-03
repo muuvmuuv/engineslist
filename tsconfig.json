@@ -2,16 +2,18 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "commonjs",
-    "rootDir": ".",
     "outDir": "dist",
     "esModuleInterop": true,
+    "moduleResolution": "node",
+    "declaration": false,
+    "pretty": false,
     "sourceMap": false,
     "newLine": "lf",
+    "stripInternal": true,
     "strict": true,
-    "noImplicitReturns": true,
-    "noImplicitAny": true,
-    "noUnusedLocals": false,
     "resolveJsonModule": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
@@ -19,9 +21,6 @@
     "skipLibCheck": true
   },
   "include": [
-    "src/*"
-  ],
-  "exclude": [
-    "node_modules"
+    "src"
   ]
 }

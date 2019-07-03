@@ -1,6 +1,7 @@
 import typescript from 'rollup-plugin-typescript2'
 import json from 'rollup-plugin-json'
 import { terser } from 'rollup-plugin-terser'
+import analyze from 'rollup-plugin-analyzer'
 import createBanner from 'create-banner'
 import moment from 'moment'
 import chalk from 'chalk'
@@ -31,6 +32,10 @@ const plugins = [
     namedExports: true,
     compact: true,
   }),
+  analyze({
+    showExports: true,
+    writeTo: null, // (str) => {}
+  }),
 ]
 
 const isProd = process.env.NODE_ENV === 'production'
@@ -38,7 +43,7 @@ const isDev = process.env.NODE_ENV === 'developent'
 
 console.log(
   'Environment:',
-  isDev ? chalk.green('development') : chalk.red('production')
+  isDev ? chalk.green('development') : chalk.red('production'),
 )
 
 if (isProd) {
@@ -52,7 +57,7 @@ if (isProd) {
           }
         },
       },
-    })
+    }),
   )
 }
 

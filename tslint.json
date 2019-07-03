@@ -17,6 +17,15 @@
     "object-literal-sort-keys": false,
     "no-console": false,
     "no-implicit-dependencies": false,
-    "variable-name": false
+    "variable-name": false,
+    "interface-name": false,
+    "no-string-literal": false,
+    "trailing-comma": [
+      true,
+      {
+        "multiline": "always",
+        "singleline": "never"
+      }
+    ]
   }
 }

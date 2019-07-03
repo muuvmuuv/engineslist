@@ -1,22 +1,31 @@
-interface IPlain {
+import chalk from 'chalk'
+
+interface Plain {
   [type: string]: string
 }
 
 const PlainSyncLoader = (_: string, content: string) => {
-  const returnArray: IPlain = {}
-  const matches = content.match(/([a-z-_]+)(.*)/g)
-  if (!matches) {
-    throw new Error(`We had a problem finding matches in this file`)
+  const returnArray: Plain = {}
+  const lines = content.match(/^.*/gm)
+  if (!lines) {
+    throw new Error(`It seems like your engines file is empty?`)
   }
-  matches.forEach((e, i) => {
-    const engine = /([a-z-_]+)(.*)/.exec(e)
+
+  lines.forEach((line, i) => {
+    const engine = /^([a-z-_/.]+)(.*)/.exec(line)
     if (!engine) {
-      throw new Error(`There was an error in your config file on line: ${i}`)
+      throw new Error(
+        'There was an error in your config file on line: ' +
+          chalk.yellow(i.toString()) +
+          '\n\n' +
+          'Please make sure you only specify valid programs no path to a program.\n',
+      )
     }
     const prg = engine[1]
     const version = engine[2].replace(/\s/, '')
     returnArray[prg] = version
   })
+
   return returnArray
 }
 

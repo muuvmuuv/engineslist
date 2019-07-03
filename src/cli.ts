@@ -29,11 +29,16 @@ const cli = meow(
         alias: 'i',
         default: true,
       },
+      strict: {
+        type: 'boolean',
+        alias: 's',
+        default: false,
+      },
     },
-  }
+  },
 )
 
-const { debug, ignoreLocal } = cli.flags
+const { debug, ignoreLocal, strict } = cli.flags
 const cwd = cli.input[0] || process.cwd()
 
 console.log(
@@ -53,18 +58,22 @@ console.log(
     align: 'center',
     borderColor: 'white',
     dimBorder: true,
-  }) + '\n'
+  }) + '\n',
 )
 
-const engineslist = new Engineslist({
-  silent: false,
-  ignoreLocal,
-  cwd,
-  debug,
-})
+const engineslist = new Engineslist(
+  {},
+  {
+    silent: false,
+    ignoreLocal,
+    strict,
+    cwd,
+    debug,
+  },
+)
 
-engineslist.run().then(res => {
-  const success = Object.values(res).every(v => v.success === true)
+engineslist.run().then((res) => {
+  const success = Object.values(res).every((v) => v.success === true)
   if (!success) {
     console.log(
       `
@@ -72,7 +81,7 @@ engineslist.run().then(res => {
     Seems like some engines does not satisfies or not
     exists. You may check them and install the correct
     version before using this project.
-      `
+      `,
     )
   } else {
     console.log(
@@ -80,20 +89,19 @@ engineslist.run().then(res => {
     ${chalk.green('Yeah!')}
     You are ready to go. All engines are compatible
     with you system environment.
-      `
+      `,
     )
   }
-
   if (debug) {
     console.log()
-    Object.keys(res).forEach(r => {
+    Object.keys(res).forEach((r) => {
       console.log(chalk.bold(r.toUpperCase()))
       console.log(
         util.inspect(res[r], {
           showHidden: false,
-          depth: 3,
+          depth: 4,
           colors: true,
-        })
+        }),
       )
       console.log()
     })
