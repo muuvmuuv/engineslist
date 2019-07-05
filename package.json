@@ -24,9 +24,9 @@
     "dist",
     "types.d.ts"
   ],
-  "main": "dist/engineslist",
-  "module": "dist/engineslist.esm",
-  "bin": "./dist/cli",
+  "main": "dist/engineslist.js",
+  "module": "dist/engineslist.esm.js",
+  "bin": "./dist/cli.js",
   "typings": "types.d.ts",
   "scripts": {
     "build": "npm run clean && rollup -c",
@@ -40,7 +40,7 @@
     "start": "npm run watch",
     "test": "nyc ava",
     "test-cli": "engineslist",
-    "cli": "node dist/cli",
+    "cli": "node dist/cli.js",
     "watch": "npm run dev -- -- --watch"
   },
   "husky": {
