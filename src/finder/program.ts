@@ -54,7 +54,7 @@ export function findProgram(
 
         if (ctx.options.debug) {
           console.log('Engine:', chalk.green(engine.cmd))
-          console.log('Command:', response.cmd)
+          console.log('Command:', response.command)
           console.log('Stdout:', stdout)
           console.log('Stderr:', stderr)
           console.log('Steps:', step, maxSteps)

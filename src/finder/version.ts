@@ -26,7 +26,7 @@ export function findVersion(
       step++
 
       try {
-        const { stdout, cmd } = execa.sync(
+        const { stdout, command } = execa.sync(
           engine.executable || engine.cmd,
           [flag],
           {
@@ -38,7 +38,7 @@ export function findVersion(
 
         if (ctx.options.debug) {
           console.log('Engine:', chalk.green(engine.cmd))
-          console.log('Command:', cmd)
+          console.log('Command:', command)
           console.log('Flag:', flag)
           console.log('Stdout:', stdout)
           console.log('Normalized:', normalized ? normalized.version : null)
